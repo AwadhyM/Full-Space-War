@@ -253,3 +253,20 @@
   (if (or (> (tank-x tank) 280) (< (tank-x tank) 20))
       true
       false))
+
+; #8- Functions for the missiles
+; game x y me --> game
+; Add missiles to the game 
+;(define (shoot-missile game x y me) game)
+
+(check-expect (shoot-missile (make-game empty empty (make-tank 50 1) 0) 100 150 "button-down") (make-game empty (list (make-missile 51 TANK-HEIGHT/2)) (make-tank 50 1) 0)) ; valid click
+(check-expect (shoot-missile (make-game empty empty (make-tank 50 1) 0) 100 150 "drag") (make-game empty empty (make-tank 50 1))) ;invalid me
+(check-expect (shoot-missile (make-game empty
+                                        (list (make-missile 100 150) (make-missile 20 30) (make-missile 80 90)) (make-tank 50 1) 0) 40 70 "button-down")
+                                        (make-game empty (list (make-missile 51 TANK-HEIGHT/2)(make-missile 100 150) (make-missile 20 30) (make-missile 80 90)) (make-tank 50 1) 0))
+
+
+(define (shoot-missile game x y me)
+  (cond [(mouse=? me "button-down") (make-game (game-invaders game) (cons (make-missile (+ (tank-dir (game-tank game)) (tank-x (game-tank game))) TANK-HEIGHT/2) (game-missiles game)) (game-tank game) (game-score game))]
+        [else game]))
+
