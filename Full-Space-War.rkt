@@ -33,3 +33,16 @@
               5 -14
               (above (rectangle 5 10 "solid" "green")       ;gun
                      (rectangle 20 10 "solid" "green"))))   ;main body
+
+;Data Definitions
+
+(define-struct game (invaders missile tank score))
+;; game is (make-game (listOf Invaders) (listOf Missile) Tank Score))
+ ;represents the current state of the game world such as number of invaders on screen, and the score of the current player
+
+#;;template for functions relating to the game state 
+(define (fn-for-game g)
+  (... (fn-for-loinvader (game-invaders g))
+       (fn-for-lom (game-missiles g))
+       (fn-for-tank (game-tank g))
+       (fn-for-score (game-score g))))
