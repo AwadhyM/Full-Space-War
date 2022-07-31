@@ -53,14 +53,15 @@
 (define (fn-for-tank t)
   (... (tank-x t) (tank-dir t)))
 
-(define-struct invader (x y dx))
+(define-struct invader (x y dx dy))
 ;; Invader is (make-invader Number Number Number)
 ;; interp. the invader is at (x, y) in screen coordinates
 ;;         the invader along x by dx pixels per clock tick
+;;         the invader along y by dy pixels per clock tick 
 
-(define I1 (make-invader 150 100 12))           ;not landed, moving right
-(define I2 (make-invader 150 HEIGHT -10))       ;exactly landed, moving left
-(define I3 (make-invader 150 (+ HEIGHT 10) 10)) ;> landed, moving right
+(define I1 (make-invader 150 100 12 4))           ;not landed, moving right
+(define I2 (make-invader 150 HEIGHT -10 -4))       ;exactly landed, moving left
+(define I3 (make-invader 150 (+ HEIGHT 10) 10 4)) ;> landed, moving right
 
 
 #;
@@ -364,3 +365,61 @@
   (cond [(empty? missile) UPPER-BACKGROUND]
         [else
          (place-image MISSILE (missile-x missile) (- (- HEIGHT 30) (missile-y missile)) img)]))
+
+; #16 - next-invaders -
+;Generate Invaders and move existing invaders
+; loi -> loi
+
+(define (next-invaders loi lom)
+  (create-invaders (advance-invaders loi )))
+
+(check-random (next-invaders empty) (list (make-invader (random WIDTH) 0 10 4))) ;empty list so just has to add 1
+(check-random (next-invaders (list (make-invader 50 0 10 4))) (list (make-invader (random WIDTH) 0 10 4) (make-invader 55 5 10 4))) ;1 space invader so advance it and then add another
+(check-random (next-invaders (list (make-invader 80 0 10 4) (make-invader 55 5 10 4))) (list (make-invader (random WIDTH) 0 10 4) (make-invader 85 5 10 4) (make-invader 60 10 10 4)))
+
+; #17 - create-invaders
+; Add a new invader with random height and width to loi
+; loi -> loi
+;(define (create-invaders loi) loi)
+
+(check-random (create-invaders (list (make-invader 156 106 12 4) (make-invader 60 10 10 4) (make-invader 65 15 10 4))) (list (make-invader (random WIDTH) 0 10 4)
+                                                                                                                  (make-invader 156 106 12 4) (make-invader 60 10 10 4) (make-invader 65 15 10 4)))
+(check-random (create-invaders empty) (if (= 2 (random 150)) (cons (make-invader (random WIDTH) 0 10 4)) empty))
+
+(check-random (create-invaders (list (make-invader 156 106 12 4) (make-invader 60 10 10 4) (make-invader 65 15 10 4))) (if (= 2 (random 250)) (list (make-invader (random WIDTH) 0 10 4)
+                                                                                                                  (make-invader 156 106 12 4) (make-invader 60 10 10 4) (make-invader 65 15 10 4))
+                                                                                                                  (list (make-invader 156 106 12 4) (make-invader 60 10 10 4) (make-invader 65 15 10 4))))
+(define (create-invaders loi)
+  (if (= 2 (random 50))
+      (cons (make-invader (random WIDTH) HEIGHT 8) loi)
+      loi))
+
+; #18 - advance-invaders
+; Move each existing invader in list by 45 degrees
+; loi --> loi
+;(define (advance-invaders loi) loi)
+
+(check-expect (advance-invaders empty) empty)
+(check-expect (advance-invaders (list (make-invader 150 100 6 2) (make-invader 55 5 3 4) (make-invader 60 10 10 4))) (list (make-invader 156 102 6 2) (make-invader 58 9 10 4) (make-invader 70 14 10 4)))
+
+(define (advance-invaders loi)
+  (cond [(empty? loi) empty]                   ;BASE CASE
+        [else (cons (advance-invader (first loi))                 ;String
+                   (advance-invaders (rest loi)))])) ;NATURAL RECURSION
+
+; #19 - advance-invader
+; Move invader by 45 degrees
+;invader -> invader
+;(define (advance-invader invader) invader)
+
+(check-expect (advance-invader empty) empty)
+(check-expect (advance-invader (make-invader 150 100 12)) (make-invader 156 106 12))
+
+
+(define (advance-invader invader)
+  (cond [(empty? invader) empty]
+        [(hit-right-edge? invader) (make-invader (- WIDTH 15) (- (invader-y invader) 2) (- 0 (invader-dx invader)) (- 0 (invader-dy invader)))]
+        [(hit-left-edge? invader) (make-invader (+ (- WIDTH WIDTH) 15) (- (invader-y invader) 2)  (- 0 (invader-dx invader)) (- 0 (invader-dy invader)))]
+        [else
+         (make-invader (+ (/ (invader-dx invader) 2) (invader-x invader)) (- (invader-y invader) 2) (invader-dy invader))]))
+        
