@@ -14,6 +14,7 @@
 (define INVADER-X-SPEED 1.5)  
 (define INVADER-Y-SPEED 1.5)
 (define TANK-SPEED 2)
+(define MISSILE (ellipse 5 15 "solid" "white"))
 (define MISSILE-SPEED 10)
 
 (define HIT-RANGE 10)
@@ -33,6 +34,8 @@
               5 -14
               (above (rectangle 5 10 "solid" "green")       ;gun
                      (rectangle 20 10 "solid" "green"))))   ;main body
+
+(define TANK-HEIGHT/2 (/ (image-height TANK) 2))
 
 ;Data Definitions
 
@@ -195,7 +198,6 @@
       ;(render-missiles (game-missiles game))
       (render-tank (game-tank game))
       ;(render-score (game-score game))
-      BACKGROUND
               ))
 
 ; #4 - place-tank
@@ -260,7 +262,7 @@
 ;(define (shoot-missile game x y me) game)
 
 (check-expect (shoot-missile (make-game empty empty (make-tank 50 1) 0) 100 150 "button-down") (make-game empty (list (make-missile 51 TANK-HEIGHT/2)) (make-tank 50 1) 0)) ; valid click
-(check-expect (shoot-missile (make-game empty empty (make-tank 50 1) 0) 100 150 "drag") (make-game empty empty (make-tank 50 1))) ;invalid me
+(check-expect (shoot-missile (make-game empty empty (make-tank 50 1) 0) 100 150 "drag") (make-game empty empty (make-tank 50 1) 0)) ;invalid me
 (check-expect (shoot-missile (make-game empty
                                         (list (make-missile 100 150) (make-missile 20 30) (make-missile 80 90)) (make-tank 50 1) 0) 40 70 "button-down")
                                         (make-game empty (list (make-missile 51 TANK-HEIGHT/2)(make-missile 100 150) (make-missile 20 30) (make-missile 80 90)) (make-tank 50 1) 0))
@@ -333,3 +335,4 @@
          (if (> (missile-y missile) 500)
              false
              true)]))
+
