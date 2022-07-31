@@ -118,3 +118,13 @@
   (cond [(empty? lom) (...)]                   ;BASE CASE
         [else (... (first lom)                 ;String
                    (fn-for-lom (rest lom)))])) ;NATURAL RECURSION
+
+; Score is Number
+; interp. score that has been accumulated so far in the game
+(define START-SCORE 0)
+(define MID-GAME-SCORE 50)
+
+#;
+(define (fn-for-score s)
+  (... s))
+
