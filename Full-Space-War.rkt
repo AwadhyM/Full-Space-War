@@ -36,17 +36,6 @@
 
 ;Data Definitions
 
-(define-struct game (invaders missile tank score))
-;; game is (make-game (listOf Invaders) (listOf Missile) Tank Score))
- ;represents the current state of the game world such as number of invaders on screen, and the score of the current player
-
-#;;template for functions relating to the game state 
-(define (fn-for-game g)
-  (... (fn-for-loinvader (game-invaders g))
-       (fn-for-lom (game-missiles g))
-       (fn-for-tank (game-tank g))
-       (fn-for-score (game-score g))))
-
 (define-struct tank (x dir))
 ;; Tank is (make-tank Number Integer[-1, 1])
 ;; interp. the tank location is x, HEIGHT - TANK-HEIGHT/2 in screen coordinates
@@ -81,7 +70,7 @@
 
 (define LOI0 empty) ; no invaderss in the game
 (define LOI1 (cons I1 empty)) ; 1 invader
-(define LOM2 (list I1`I2 I3)) ;multiple invaders
+(define LOI2 (list I1`I2 I3)) ;multiple invaders
 
 ;template for functions
 
@@ -128,6 +117,24 @@
 (define (fn-for-score s)
   (... s))
 
+
+(define-struct game (invaders missiles tank score))
+;; game is (make-game (listOf Invaders) (listOf Missile) Tank Score))
+ ;represents the current state of the game world such as number of invaders on screen, and the score of the current player
+
+(define G0 (make-game empty empty T0 0))
+(define G1 (make-game empty empty T1 0))
+(define G4 (make-game empty empty T2 0))
+(define G2 (make-game (list I1) (list M1) T1 5))
+(define G3 (make-game (list I1 I2) (list M1 M2) T1 25))
+
+#;;template for functions relating to the game state 
+(define (fn-for-game g)
+  (... (fn-for-loinvader (game-invaders g))
+       (fn-for-lom (game-missiles g))
+       (fn-for-tank (game-tank g))
+       (fn-for-score (game-score g))))
+
 ;; Functions 
 
 ;; Function that alters the game state (Using the big-bang functionality of this language) 
@@ -135,7 +142,7 @@
   (big-bang game                   ; game
             (on-tick  move-data)     ; game -> game
             (to-draw  render-data)   ; game -> Image
-            (on-mouse  shoot-missile)      ; game Integer Integer MouseEvent -> game
+            ;(on-mouse  shoot-missile)      ; game Integer Integer MouseEvent -> game
             (on-key    change-direction)))    ;game key -> game
 
 ; #1 - Change-direction
@@ -143,25 +150,25 @@
 ;Change the direction that the tank is moving in depending on which key is pressed
 ;(define (change-direction game ke) game)
 
-(check-expect (change-direction (make-game empty empty T1) "left") (make-game empty empty T2))
-(check-expect (change-direction (make-game empty empty T1) "right") (make-game empty empty T1))
-(check-expect (change-direction (make-game empty empty T2) "up") (make-game empty empty T2))
+(check-expect (change-direction (make-game empty empty T1 0) "left") (make-game empty empty T2 0))
+(check-expect (change-direction (make-game empty empty T1 0) "right") (make-game empty empty T1 0))
+(check-expect (change-direction (make-game empty empty T2 0) "up") (make-game empty empty T2 0))
 
 (define (change-direction game ke)
   (cond [(same-direction? game ke) game]
         [else 
          (if (key=? ke "left")
-             (make-game (game-invaders game) (game-missiles game) (make-tank (tank-x (game-tank game)) -1)) 
-             (make-game (game-invaders game) (game-missiles game) (make-tank (tank-x (game-tank game)) 1)))]))
+             (make-game (game-invaders game) (game-missiles game) (make-tank (tank-x (game-tank game)) -1) (game-score game)) 
+             (make-game (game-invaders game) (game-missiles game) (make-tank (tank-x (game-tank game)) 1) (game-score game)))]))
 
 ; #2 - same-direction? (helper function)
 ; game + ke --> boolean
 ;Produce true if key pressed matches the direction that the tank is already going in
 ;(define (same-direction? ke game) true)
 
-(check-expect (same-direction? (make-game empty empty T1) "left") false)
-(check-expect (same-direction? (make-game empty empty T1) "up") true)
-(check-expect (same-direction? (make-game empty empty T1) "right") true)
+(check-expect (same-direction? (make-game empty empty T1 0) "left") false)
+(check-expect (same-direction? (make-game empty empty T1 0) "up") true)
+(check-expect (same-direction? (make-game empty empty T1 0) "right") true)
 
 (define (same-direction? game ke)
   (cond [(and (key=? ke "left") (= (tank-dir (game-tank game)) -1)) true]
@@ -169,3 +176,80 @@
         [(false? (or (key=? ke "left") (key=? ke "right"))) true]
         [else
          false]))
+
+; #3 - render-data
+;ListOfInvaders + ListOfMissiles + tank + score --> Image
+;(render-data (invaders missiles tank))
+;Present the data in the game as an image
+;(define (render-data invaders missiles tank))
+
+;Tests for showing tank
+(check-expect (render-data G0) (place-image TANK (tank-x T0) 480 BACKGROUND))
+(check-expect (render-data (make-game empty empty T1 0)) (place-image TANK (tank-x T1) 480 BACKGROUND))
+(check-expect (render-data (make-game empty empty (make-tank 140 -1) 0)) (place-image TANK 140 480 BACKGROUND))
+
+
+(define (render-data game)
+     (overlay
+      ;(render-invaders (game-invaders game))
+      ;(render-missiles (game-missiles game))
+      (render-tank (game-tank game))
+      ;(render-score (game-score game))
+      BACKGROUND
+              ))
+
+; #4 - place-tank
+;tank --> image
+;Helper function that allows the render-data game to render the tank
+;(define (render-tank tank) TANK)
+
+(check-expect (render-tank T1) (place-image TANK (tank-x T1) 480 BACKGROUND))
+
+(define (render-tank tank)
+  (place-image TANK (tank-x tank) 480 BACKGROUND))
+
+; #5 - move-data
+; Game --> Game
+;Ensure that data is changing with each second to match flow of the game
+;(define (move-data game) game)
+
+;Tests for movement of tank
+;(check-expect (move-data G0)(make-game empty empty (make-tank (+ (tank-x T0) TANK-SPEED) (tank-dir T0)))) ;Tank going right
+;(check-expect (move-data (make-game empty empty T2))(make-game empty empty (make-tank (- (tank-x T2) TANK-SPEED) (tank-dir T2)))) ;Tank going left
+
+(define (move-data game) 
+  (make-game
+       empty
+       empty
+       (move-tank (game-tank game))
+       0))
+
+; #6 - move-tank (helper function)
+;;tank --> tank
+; Change the x coordinate of the tank
+;(define (move-tank tank) game)
+
+(check-expect (move-tank T1) (make-tank (+ (tank-x T1) TANK-SPEED) (tank-dir T1)))
+(check-expect (move-tank T2) (make-tank (- (tank-x T2) TANK-SPEED) (tank-dir T2)))
+
+(define (move-tank tank)
+  (cond [(and (out-of-bounds? tank) (= (tank-dir tank) 1) (> (tank-x tank) 279)) tank]
+        [(and (out-of-bounds? tank) (= (tank-dir tank) -1) (< (tank-x tank) 21)) tank]
+        [else
+         (if (> (tank-dir tank) 0)
+             (make-tank (+ (tank-x tank) TANK-SPEED) (tank-dir tank))
+             (make-tank (- (tank-x tank) TANK-SPEED) (tank-dir tank)))]))
+
+; #7 - out-of-bounds? (helper function)
+;; tank --> boolean
+;; Check the x coordinate of the tank to prevent it from going out of the screen
+;(define (out-of-bounds? tank) true)
+
+(check-expect (out-of-bounds? (make-tank 300 1)) true)
+(check-expect (out-of-bounds? (make-tank 3 -1)) true)
+(check-expect (out-of-bounds? (make-tank 50 1)) false)
+
+(define (out-of-bounds? tank)
+  (if (or (> (tank-x tank) 280) (< (tank-x tank) 20))
+      true
+      false))
