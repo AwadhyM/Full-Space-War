@@ -278,4 +278,58 @@
 
 
 (check-expect (next-missiles empty empty) empty)
-(check-expect (next-missiles (list (make-missile 15 15) (make-missile 100 500) (make-missile 30 20) (make-missile 50 500)) empty) (list (make-missile 15 25) (make-missile 30 30))) 
+(check-expect (next-missiles (list (make-missile 15 15) (make-missile 100 500) (make-missile 30 20) (make-missile 50 500)) empty) (list (make-missile 15 25) (make-missile 30 30)))
+
+; #10 - Function for moving the Y coordinate of missiles - advance-missiles
+;lom --> lom
+;(define (advance-missiles lom) lom)
+
+(check-expect (advance-missiles empty) empty)
+(check-expect (advance-missiles (list (make-missile 50 50) (make-missile 30 500) (make-missile 80 90))) (list (make-missile 50 60) (make-missile 30 510) (make-missile 80 100)))
+
+(define (advance-missiles lom)
+  (cond [(empty? lom) empty]
+        [else
+         (cons (advance-missile (first lom))
+               (advance-missiles (rest lom)))]))
+
+; #11 - function to move each missile
+;missile ---> missile
+;(define advance-missile lom)
+
+(check-expect (advance-missile empty) empty)
+(check-expect (advance-missile (make-missile 50 500)) (make-missile 50 510))
+
+(define (advance-missile missile)
+  (cond [(empty? missile) empty]
+        [else 
+         (make-missile (missile-x missile) (+ MISSILE-SPEED (missile-y missile)))]))
+
+; #12 - Produce list of missiles of only missiles that are on screen
+; lom --> lom
+;(define (on-screen-only lom) lom)
+
+(check-expect (on-screen-only (list (make-missile 10 10) (make-missile 50 510) (make-missile 70 70) (make-missile 80 510))) (list (make-missile 10 10) (make-missile 70 70)))
+(check-expect (on-screen-only empty) empty)
+
+(define (on-screen-only lom)
+  (cond [(empty? lom) empty]
+        [else
+         (if (on-screen? (first lom))
+          (cons (first lom) (on-screen-only (rest lom)))
+          (on-screen-only (rest lom)))]))
+
+; #13 - check if individual missile is on screen
+; missile --> boolean
+;(define (on-screen? missile) true)
+
+(check-expect (on-screen? empty) false)
+(check-expect (on-screen? (make-missile 50 50)) true)
+(check-expect (on-screen? (make-missile 50 505)) false)
+
+(define (on-screen? missile)
+  (cond [(empty? missile) false]
+        [else
+         (if (> (missile-y missile) 500)
+             false
+             true)]))
