@@ -422,4 +422,5 @@
         [(hit-left-edge? invader) (make-invader (+ (- WIDTH WIDTH) 15) (- (invader-y invader) 2)  (- 0 (invader-dx invader)) (- 0 (invader-dy invader)))]
         [else
          (make-invader (+ (/ (invader-dx invader) 2) (invader-x invader)) (- (invader-y invader) 2) (invader-dy invader))]))
+
         
