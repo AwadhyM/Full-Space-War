@@ -22,6 +22,7 @@
 (define INVADE-RATE 100)
 
 (define BACKGROUND (rectangle WIDTH HEIGHT "solid" "black"))
+(define UPPER-BACKGROUND (rectangle WIDTH HEIGHT 0 "white"))
 
 (define INVADER
   (overlay/xy (ellipse 10 15 "outline" "white")              
@@ -145,7 +146,7 @@
   (big-bang game                   ; game
             (on-tick  move-data)     ; game -> game
             (to-draw  render-data)   ; game -> Image
-            ;(on-mouse  shoot-missile)      ; game Integer Integer MouseEvent -> game
+            (on-mouse  shoot-missile)      ; game Integer Integer MouseEvent -> game
             (on-key    change-direction)))    ;game key -> game
 
 ; #1 - Change-direction
@@ -195,7 +196,7 @@
 (define (render-data game)
      (overlay
       ;(render-invaders (game-invaders game))
-      ;(render-missiles (game-missiles game))
+      (render-missiles (game-missiles game))
       (render-tank (game-tank game))
       ;(render-score (game-score game))
               ))
@@ -216,13 +217,15 @@
 ;(define (move-data game) game)
 
 ;Tests for movement of tank
-;(check-expect (move-data G0)(make-game empty empty (make-tank (+ (tank-x T0) TANK-SPEED) (tank-dir T0)))) ;Tank going right
-;(check-expect (move-data (make-game empty empty T2))(make-game empty empty (make-tank (- (tank-x T2) TANK-SPEED) (tank-dir T2)))) ;Tank going left
+(check-expect (move-data G0)(make-game empty empty (make-tank (+ (tank-x T0) TANK-SPEED) (tank-dir T0)) 0)) ;Tank going right
+(check-expect (move-data (make-game empty empty T2 0))(make-game empty empty (make-tank (- (tank-x T2) TANK-SPEED) (tank-dir T2)) 0)) ;Tank going left
+
+
 
 (define (move-data game) 
   (make-game
        empty
-       empty
+       (next-missiles (game-missiles game) (game-invaders game))
        (move-tank (game-tank game))
        0))
 
@@ -276,7 +279,7 @@
 ;lom --> lom
 ; Advance and filter the list of missiles
 (define (next-missiles lom loi)
-  (on-screen-only (advance-missiles (filter-missiles lom loi))))
+  (on-screen-only (advance-missiles lom)))
 
 
 (check-expect (next-missiles empty empty) empty)
@@ -336,3 +339,28 @@
              false
              true)]))
 
+; #14 - render-missiles - Display all the missiles currently on the screen
+;lom --> image
+;(define (render-missiles lom) BACKGROUND)
+
+(check-expect (render-missiles empty) UPPER-BACKGROUND)
+(check-expect (render-missiles (list (make-missile 50 50))) (place-image MISSILE 50 420 UPPER-BACKGROUND)) ; game with 1 missile
+(check-expect (render-missiles (list (make-missile 50 50) (make-missile 100 100) (make-missile 30 40))) (place-image MISSILE 50 420 
+                                                                                                         (place-image MISSILE 100 370
+                                                                                                         (place-image MISSILE 30 430 UPPER-BACKGROUND))))
+(define (render-missiles lom)
+ (cond [(empty? lom) UPPER-BACKGROUND]                   ;BASE CASE
+   [else (place-missile (first lom)               ;String
+       (render-missiles (rest lom)))])) ;NATURAL RECURSION
+
+; #15 - place-missile - Place a missile onto the screen
+  ;missile --> image
+;(define (place-missile missile) BACKGROUND)
+
+(check-expect (place-missile empty UPPER-BACKGROUND) UPPER-BACKGROUND)
+(check-expect (place-missile (make-missile 50 50) UPPER-BACKGROUND) (place-image MISSILE 50 420 UPPER-BACKGROUND))
+
+(define (place-missile missile img)
+  (cond [(empty? missile) UPPER-BACKGROUND]
+        [else
+         (place-image MISSILE (missile-x missile) (- (- HEIGHT 30) (missile-y missile)) img)]))
