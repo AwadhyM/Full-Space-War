@@ -59,3 +59,18 @@
 #;
 (define (fn-for-tank t)
   (... (tank-x t) (tank-dir t)))
+
+(define-struct invader (x y dx))
+;; Invader is (make-invader Number Number Number)
+;; interp. the invader is at (x, y) in screen coordinates
+;;         the invader along x by dx pixels per clock tick
+
+(define I1 (make-invader 150 100 12))           ;not landed, moving right
+(define I2 (make-invader 150 HEIGHT -10))       ;exactly landed, moving left
+(define I3 (make-invader 150 (+ HEIGHT 10) 10)) ;> landed, moving right
+
+
+#;
+(define (fn-for-invader invader)
+  (... (invader-x invader) (invader-y invader) (invader-dx invader)))
+
