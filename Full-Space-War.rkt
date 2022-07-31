@@ -270,3 +270,12 @@
   (cond [(mouse=? me "button-down") (make-game (game-invaders game) (cons (make-missile (+ (tank-dir (game-tank game)) (tank-x (game-tank game))) TANK-HEIGHT/2) (game-missiles game)) (game-tank game) (game-score game))]
         [else game]))
 
+; #9 - Function for the missiles - next-missiles
+;lom --> lom
+; Advance and filter the list of missiles
+(define (next-missiles lom loi)
+  (on-screen-only (advance-missiles (filter-missiles lom loi))))
+
+
+(check-expect (next-missiles empty empty) empty)
+(check-expect (next-missiles (list (make-missile 15 15) (make-missile 100 500) (make-missile 30 20) (make-missile 50 500)) empty) (list (make-missile 15 25) (make-missile 30 30))) 
