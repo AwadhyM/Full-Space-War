@@ -128,3 +128,12 @@
 (define (fn-for-score s)
   (... s))
 
+;; Functions 
+
+;; Function that alters the game state (Using the big-bang functionality of this language) 
+(define (start-game game)
+  (big-bang game                   ; game
+            (on-tick  move-data)     ; game -> game
+            (to-draw  render-data)   ; game -> Image
+            (on-mouse  shoot-missile)      ; game Integer Integer MouseEvent -> game
+            (on-key    change-direction)))    ;game key -> game
