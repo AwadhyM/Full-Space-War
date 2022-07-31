@@ -74,3 +74,47 @@
 (define (fn-for-invader invader)
   (... (invader-x invader) (invader-y invader) (invader-dx invader)))
 
+;Data that represents how many invaders are in the game 
+;ListOfInvaders is one of:
+ ; - empty
+ ; - cons Invader ListOfInvaders 
+
+(define LOI0 empty) ; no invaderss in the game
+(define LOI1 (cons I1 empty)) ; 1 invader
+(define LOM2 (list I1`I2 I3)) ;multiple invaders
+
+;template for functions
+
+(define (fn-for-loi loi)
+  (cond [(empty? loi) (...)]                   ;BASE CASE
+        [else (... (first loi)                 ;String
+                   (fn-for-loi (rest loi)))])) ;NATURAL RECURSION
+
+
+(define-struct missile (x y))
+;; Missile is (make-missile Number Number)
+;; interp. the missile's location is x y in screen coordinates
+
+(define M1 (make-missile 150 300))                       ;not hit U1
+(define M2 (make-missile (invader-x I1) (+ (invader-y I1) 10)))  ;exactly hit U1
+(define M3 (make-missile (invader-x I1) (+ (invader-y I1)  5)))  ;> hit U1
+
+#;
+(define (fn-for-missile m)
+  (... (missile-x m) (missile-y m)))
+
+;Data that represents how many missiles are in the game 
+;ListOfMissiles is one of:
+ ; - empty
+ ; - cons Missile ListOfMissiles 
+
+(define LOM0 empty) ; no missiles in the game
+(define LOM1 (cons M1 empty)) ; 1 missile
+(define LOM2 (list (make-missile 100 150) (make-missile 200 210) (make-missile 50 50))) ;multiple missiles
+
+;template for functions
+
+(define (fn-for-lom lom)
+  (cond [(empty? lom) (...)]                   ;BASE CASE
+        [else (... (first lom)                 ;String
+                   (fn-for-lom (rest lom)))])) ;NATURAL RECURSION
