@@ -137,3 +137,35 @@
             (to-draw  render-data)   ; game -> Image
             (on-mouse  shoot-missile)      ; game Integer Integer MouseEvent -> game
             (on-key    change-direction)))    ;game key -> game
+
+; #1 - Change-direction
+;game key --> game
+;Change the direction that the tank is moving in depending on which key is pressed
+;(define (change-direction game ke) game)
+
+(check-expect (change-direction (make-game empty empty T1) "left") (make-game empty empty T2))
+(check-expect (change-direction (make-game empty empty T1) "right") (make-game empty empty T1))
+(check-expect (change-direction (make-game empty empty T2) "up") (make-game empty empty T2))
+
+(define (change-direction game ke)
+  (cond [(same-direction? game ke) game]
+        [else 
+         (if (key=? ke "left")
+             (make-game (game-invaders game) (game-missiles game) (make-tank (tank-x (game-tank game)) -1)) 
+             (make-game (game-invaders game) (game-missiles game) (make-tank (tank-x (game-tank game)) 1)))]))
+
+; #2 - same-direction? (helper function)
+; game + ke --> boolean
+;Produce true if key pressed matches the direction that the tank is already going in
+;(define (same-direction? ke game) true)
+
+(check-expect (same-direction? (make-game empty empty T1) "left") false)
+(check-expect (same-direction? (make-game empty empty T1) "up") true)
+(check-expect (same-direction? (make-game empty empty T1) "right") true)
+
+(define (same-direction? game ke)
+  (cond [(and (key=? ke "left") (= (tank-dir (game-tank game)) -1)) true]
+        [(and (key=? ke "right") (= (tank-dir (game-tank game)) 1)) true]
+        [(false? (or (key=? ke "left") (key=? ke "right"))) true]
+        [else
+         false]))
