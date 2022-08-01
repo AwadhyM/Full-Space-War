@@ -196,7 +196,7 @@
 
 (define (render-data game)
   (overlay
-   ;(render-invaders (game-invaders game))
+   (render-invaders (game-invaders game))
    (render-missiles (game-missiles game))
    (render-tank (game-tank game))
    ;(render-score (game-score game))
@@ -225,7 +225,7 @@
 
 (define (move-data game) 
   (make-game
-   empty
+   (next-invaders (game-invaders game))
    (next-missiles (game-missiles game) (game-invaders game))
    (move-tank (game-tank game))
    0))
@@ -401,7 +401,7 @@
 
 (define (create-invaders loi)
   (if (= 2 (random 150))
-      (cons (make-invader (random WIDTH) HEIGHT 8) loi)
+      (cons (make-invader (random WIDTH) HEIGHT INVADER-DX INVADER-DY) loi)
       loi))
 
 ; #18 - advance-invaders
@@ -459,3 +459,30 @@
   (if (< (invader-x invader) 15)
       true
       false))
+
+; #21 - render invaders
+;loi --> image
+;display all the invaders onto the screen!
+;(define (render-invaders loi) BACKGROUND)
+
+(check-expect (render-invaders empty) UPPER-BACKGROUND)
+;(check-expect (render-invaders (list (make-invader 55 5 10 4) (make-invader 150 100 12 4) (make-invader 156 106 12 4))) (place-image INVADER 55 5 (place-image INVADER 150 100 (place-image INVADER 156 106 UPPER-BACKGROUND))))
+
+(define (render-invaders loi)
+ (cond [(empty? loi) UPPER-BACKGROUND]                   ;BASE CASE
+   [else (place-invader (first loi)               ;String
+       (render-invaders (rest loi)))])) ;NATURAL RECURSION
+
+; #22 - place-invader
+; invader -> image
+;Place an individual invader onto the screen
+;(define (place-invader invader img) BACKGROUND)
+
+;(check-expect (place-invader (make-invader 55 5 10 4) UPPER-BACKGROUND) (place-image INVADER 55 5 UPPER-BACKGROUND))
+
+                                                                                                                                             
+(define (place-invader invader img)
+  (cond [(empty? invader) UPPER-BACKGROUND]
+        [else
+         (place-image INVADER (invader-x invader) (- HEIGHT (invader-y invader)) img)]))
+
