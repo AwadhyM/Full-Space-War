@@ -11,8 +11,8 @@
 (define WIDTH  300)
 (define HEIGHT 500)
 
-(define INVADER-X-SPEED 1.5)  
-(define INVADER-Y-SPEED 1.5)
+(define INVADER-DX 5)  
+(define INVADER-DY 3)
 (define TANK-SPEED 2)
 (define MISSILE (ellipse 5 15 "solid" "white"))
 (define MISSILE-SPEED 10)
@@ -70,8 +70,8 @@
 
 ;Data that represents how many invaders are in the game 
 ;ListOfInvaders is one of:
- ; - empty
- ; - cons Invader ListOfInvaders 
+; - empty
+; - cons Invader ListOfInvaders 
 
 (define LOI0 empty) ; no invaderss in the game
 (define LOI1 (cons I1 empty)) ; 1 invader
@@ -99,8 +99,8 @@
 
 ;Data that represents how many missiles are in the game 
 ;ListOfMissiles is one of:
- ; - empty
- ; - cons Missile ListOfMissiles 
+; - empty
+; - cons Missile ListOfMissiles 
 
 (define LOM0 empty) ; no missiles in the game
 (define LOM1 (cons M1 empty)) ; 1 missile
@@ -125,7 +125,7 @@
 
 (define-struct game (invaders missiles tank score))
 ;; game is (make-game (listOf Invaders) (listOf Missile) Tank Score))
- ;represents the current state of the game world such as number of invaders on screen, and the score of the current player
+;represents the current state of the game world such as number of invaders on screen, and the score of the current player
 
 (define G0 (make-game empty empty T0 0))
 (define G1 (make-game empty empty T1 0))
@@ -145,10 +145,10 @@
 ;; Function that alters the game state (Using the big-bang functionality of this language) 
 (define (start-game game)
   (big-bang game                   ; game
-            (on-tick  move-data)     ; game -> game
-            (to-draw  render-data)   ; game -> Image
-            (on-mouse  shoot-missile)      ; game Integer Integer MouseEvent -> game
-            (on-key    change-direction)))    ;game key -> game
+    (on-tick  move-data)     ; game -> game
+    (to-draw  render-data)   ; game -> Image
+    (on-mouse  shoot-missile)      ; game Integer Integer MouseEvent -> game
+    (on-key    change-direction)))    ;game key -> game
 
 ; #1 - Change-direction
 ;game key --> game
@@ -195,12 +195,12 @@
 
 
 (define (render-data game)
-     (overlay
-      ;(render-invaders (game-invaders game))
-      (render-missiles (game-missiles game))
-      (render-tank (game-tank game))
-      ;(render-score (game-score game))
-              ))
+  (overlay
+   ;(render-invaders (game-invaders game))
+   (render-missiles (game-missiles game))
+   (render-tank (game-tank game))
+   ;(render-score (game-score game))
+   ))
 
 ; #4 - place-tank
 ;tank --> image
@@ -225,10 +225,10 @@
 
 (define (move-data game) 
   (make-game
-       empty
-       (next-missiles (game-missiles game) (game-invaders game))
-       (move-tank (game-tank game))
-       0))
+   empty
+   (next-missiles (game-missiles game) (game-invaders game))
+   (move-tank (game-tank game))
+   0))
 
 ; #6 - move-tank (helper function)
 ;;tank --> tank
@@ -269,7 +269,7 @@
 (check-expect (shoot-missile (make-game empty empty (make-tank 50 1) 0) 100 150 "drag") (make-game empty empty (make-tank 50 1) 0)) ;invalid me
 (check-expect (shoot-missile (make-game empty
                                         (list (make-missile 100 150) (make-missile 20 30) (make-missile 80 90)) (make-tank 50 1) 0) 40 70 "button-down")
-                                        (make-game empty (list (make-missile 51 TANK-HEIGHT/2)(make-missile 100 150) (make-missile 20 30) (make-missile 80 90)) (make-tank 50 1) 0))
+              (make-game empty (list (make-missile 51 TANK-HEIGHT/2)(make-missile 100 150) (make-missile 20 30) (make-missile 80 90)) (make-tank 50 1) 0))
 
 
 (define (shoot-missile game x y me)
@@ -322,8 +322,8 @@
   (cond [(empty? lom) empty]
         [else
          (if (on-screen? (first lom))
-          (cons (first lom) (on-screen-only (rest lom)))
-          (on-screen-only (rest lom)))]))
+             (cons (first lom) (on-screen-only (rest lom)))
+             (on-screen-only (rest lom)))]))
 
 ; #13 - check if individual missile is on screen
 ; missile --> boolean
@@ -347,15 +347,15 @@
 (check-expect (render-missiles empty) UPPER-BACKGROUND)
 (check-expect (render-missiles (list (make-missile 50 50))) (place-image MISSILE 50 420 UPPER-BACKGROUND)) ; game with 1 missile
 (check-expect (render-missiles (list (make-missile 50 50) (make-missile 100 100) (make-missile 30 40))) (place-image MISSILE 50 420 
-                                                                                                         (place-image MISSILE 100 370
-                                                                                                         (place-image MISSILE 30 430 UPPER-BACKGROUND))))
+                                                                                                                     (place-image MISSILE 100 370
+                                                                                                                                  (place-image MISSILE 30 430 UPPER-BACKGROUND))))
 (define (render-missiles lom)
- (cond [(empty? lom) UPPER-BACKGROUND]                   ;BASE CASE
-   [else (place-missile (first lom)               ;String
-       (render-missiles (rest lom)))])) ;NATURAL RECURSION
+  (cond [(empty? lom) UPPER-BACKGROUND]                   ;BASE CASE
+        [else (place-missile (first lom)               ;String
+                             (render-missiles (rest lom)))])) ;NATURAL RECURSION
 
 ; #15 - place-missile - Place a missile onto the screen
-  ;missile --> image
+;missile --> image
 ;(define (place-missile missile) BACKGROUND)
 
 (check-expect (place-missile empty UPPER-BACKGROUND) UPPER-BACKGROUND)
@@ -370,42 +370,54 @@
 ;Generate Invaders and move existing invaders
 ; loi -> loi
 
-(define (next-invaders loi lom)
+(define (next-invaders loi)
   (create-invaders (advance-invaders loi )))
 
-(check-random (next-invaders empty) (list (make-invader (random WIDTH) 0 10 4))) ;empty list so just has to add 1
-(check-random (next-invaders (list (make-invader 50 0 10 4))) (list (make-invader (random WIDTH) 0 10 4) (make-invader 55 5 10 4))) ;1 space invader so advance it and then add another
-(check-random (next-invaders (list (make-invader 80 0 10 4) (make-invader 55 5 10 4))) (list (make-invader (random WIDTH) 0 10 4) (make-invader 85 5 10 4) (make-invader 60 10 10 4)))
+(check-random (next-invaders empty) (if (= 2 (random 150)) (make-invader (random WIDTH) 0 INVADER-DX INVADER-DY) empty)) ;no invaders in game... gaame generates one by random chance 
+
+(check-random (next-invaders (list (make-invader 60 10 INVADER-DX INVADER-DY) (make-invader 90 30 INVADER-DX INVADER-DY)))
+              (if (= 2 (random 150)) (list (make-invader (random WIDTH) 0 INVADER-DX INVADER-DY)
+                                           (make-invader (+ 60 INVADER-DX) (+ 10 INVADER-DY) INVADER-DX INVADER-DY)
+                                           (make-invader (+ 90 INVADER-DX) (+ 30 INVADER-DY) INVADER-DX INVADER-DY)
+                                           )
+                  (list (make-invader (+ 60 INVADER-DX) (+ 10 INVADER-DY) INVADER-DX INVADER-DY)
+                        (make-invader (+ 90 INVADER-DX) (+ 30 INVADER-DY) INVADER-DX INVADER-DY)
+                        )))
 
 ; #17 - create-invaders
 ; Add a new invader with random height and width to loi
 ; loi -> loi
 ;(define (create-invaders loi) loi)
+;!!!
 
-(check-random (create-invaders (list (make-invader 156 106 12 4) (make-invader 60 10 10 4) (make-invader 65 15 10 4))) (list (make-invader (random WIDTH) 0 10 4)
-                                                                                                                  (make-invader 156 106 12 4) (make-invader 60 10 10 4) (make-invader 65 15 10 4)))
-(check-random (create-invaders empty) (if (= 2 (random 150)) (cons (make-invader (random WIDTH) 0 10 4)) empty))
+(check-random (create-invaders empty) (if (= 2 (random 150)) (make-invader (random WIDTH) 0 INVADER-DX INVADER-DY) empty))
 
-(check-random (create-invaders (list (make-invader 156 106 12 4) (make-invader 60 10 10 4) (make-invader 65 15 10 4))) (if (= 2 (random 250)) (list (make-invader (random WIDTH) 0 10 4)
-                                                                                                                  (make-invader 156 106 12 4) (make-invader 60 10 10 4) (make-invader 65 15 10 4))
-                                                                                                                  (list (make-invader 156 106 12 4) (make-invader 60 10 10 4) (make-invader 65 15 10 4))))
+(check-random (create-invaders (list (make-invader 60 10 INVADER-DX INVADER-DY) (make-invader 90 30 INVADER-DX INVADER-DY))) (if (= 2 (random 150)) (list (make-invader (random WIDTH) 0 INVADER-DX INVADER-DY)
+                                                                                                                                                          (make-invader 90 30 INVADER-DX INVADER-DY)
+                                                                                                                                                          (make-invader 60 10 INVADER-DX INVADER-DY))
+                                                                                                                                 (list (make-invader 60 10 INVADER-DX INVADER-DY) (make-invader 90 30 INVADER-DX INVADER-DY))
+                                                                                                                                 ))
+
+
 (define (create-invaders loi)
-  (if (= 2 (random 50))
+  (if (= 2 (random 150))
       (cons (make-invader (random WIDTH) HEIGHT 8) loi)
       loi))
 
 ; #18 - advance-invaders
-; Move each existing invader in list by 45 degrees
+; Move each existing invader in list down the screen at an angle
 ; loi --> loi
 ;(define (advance-invaders loi) loi)
 
 (check-expect (advance-invaders empty) empty)
-(check-expect (advance-invaders (list (make-invader 150 100 6 2) (make-invader 55 5 3 4) (make-invader 60 10 10 4))) (list (make-invader 156 102 6 2) (make-invader 58 9 10 4) (make-invader 70 14 10 4)))
+
+(check-expect (advance-invaders (list (make-invader 150 100 12 INVADER-DY) (make-invader 55 5 10 5) (make-invader 60 10 10 3)))
+              (list (make-invader 162 (+ 100 INVADER-DY) 12 INVADER-DY) (make-invader 65 10 10 5) (make-invader 70 13 10 3)))
 
 (define (advance-invaders loi)
   (cond [(empty? loi) empty]                   ;BASE CASE
         [else (cons (advance-invader (first loi))                 ;String
-                   (advance-invaders (rest loi)))])) ;NATURAL RECURSION
+                    (advance-invaders (rest loi)))])) ;NATURAL RECURSION
 
 ; #19 - advance-invader
 ; Move invader by 45 degrees
@@ -413,14 +425,37 @@
 ;(define (advance-invader invader) invader)
 
 (check-expect (advance-invader empty) empty)
-(check-expect (advance-invader (make-invader 150 100 12)) (make-invader 156 106 12))
-
+(check-expect (advance-invader (make-invader 150 100 12 6)) (make-invader 162 106 12 6))
 
 (define (advance-invader invader)
   (cond [(empty? invader) empty]
-        [(hit-right-edge? invader) (make-invader (- WIDTH 15) (- (invader-y invader) 2) (- 0 (invader-dx invader)) (- 0 (invader-dy invader)))]
-        [(hit-left-edge? invader) (make-invader (+ (- WIDTH WIDTH) 15) (- (invader-y invader) 2)  (- 0 (invader-dx invader)) (- 0 (invader-dy invader)))]
+        [(hit-right-edge? invader) (make-invader (- WIDTH (invader-dx invader)) (+ (invader-y invader) (invader-dy invader)) (- 0 (invader-dx invader)) (- 0 (invader-dy invader)))]
+        [(hit-left-edge? invader) (make-invader (+ (- WIDTH WIDTH) (invader-dx invader)) (+ (invader-y invader) (invader-dy invader))  (- 0 (invader-dx invader)) (- 0 (invader-dy invader)))]
         [else
-         (make-invader (+ (/ (invader-dx invader) 2) (invader-x invader)) (- (invader-y invader) 2) (invader-dy invader))]))
+         (make-invader (+ (invader-x invader) (invader-dx invader)) (+ (invader-y invader) (invader-dy invader)) (invader-dx invader) (invader-dy invader))]))
 
-        
+; #20 - hit-right-edge?
+;invader - Boolean
+; Function that suggests if an invader needs to change direction
+;(define (hit-right-edge? invader) true)
+
+(check-expect (hit-right-edge? (make-invader 55 5 10 4)) false) ;does not need to change direction
+(check-expect (hit-right-edge? (make-invader WIDTH 80 10 4)) true) ;does need to change direction
+
+(define (hit-right-edge? invader)
+  (if (> (invader-x invader) (- WIDTH 15))
+      true
+      false))
+
+; #21 - hit-left-edge?
+; invader -> Boolean
+; Function that suggests if an invader needs to change direction
+;(define (hit-left-edge? invader) true)
+
+(check-expect (hit-left-edge? (make-invader 55 5 10 4)) false)
+(check-expect (hit-left-edge? (make-invader (- WIDTH WIDTH) 80 10 4)) true)
+
+(define (hit-left-edge? invader)
+  (if (< (invader-x invader) 15)
+      true
+      false))
