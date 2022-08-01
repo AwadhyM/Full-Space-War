@@ -377,11 +377,11 @@
 
 (check-random (next-invaders (list (make-invader 60 10 INVADER-DX INVADER-DY) (make-invader 90 30 INVADER-DX INVADER-DY)))
               (if (= 2 (random 150)) (list (make-invader (random WIDTH) 0 INVADER-DX INVADER-DY)
-                                           (make-invader (+ 60 INVADER-DX) (+ 10 INVADER-DY) INVADER-DX INVADER-DY)
-                                           (make-invader (+ 90 INVADER-DX) (+ 30 INVADER-DY) INVADER-DX INVADER-DY)
+                                           (make-invader (+ 60 INVADER-DX) (- 10 INVADER-DY) INVADER-DX INVADER-DY)
+                                           (make-invader (+ 90 INVADER-DX) (- 30 INVADER-DY) INVADER-DX INVADER-DY)
                                            )
-                  (list (make-invader (+ 60 INVADER-DX) (+ 10 INVADER-DY) INVADER-DX INVADER-DY)
-                        (make-invader (+ 90 INVADER-DX) (+ 30 INVADER-DY) INVADER-DX INVADER-DY)
+                  (list (make-invader (+ 60 INVADER-DX) (- 10 INVADER-DY) INVADER-DX INVADER-DY)
+                        (make-invader (+ 90 INVADER-DX) (- 30 INVADER-DY) INVADER-DX INVADER-DY)
                         )))
 
 ; #17 - create-invaders
@@ -411,8 +411,8 @@
 
 (check-expect (advance-invaders empty) empty)
 
-(check-expect (advance-invaders (list (make-invader 150 100 12 INVADER-DY) (make-invader 55 5 10 5) (make-invader 60 10 10 3)))
-              (list (make-invader 162 (+ 100 INVADER-DY) 12 INVADER-DY) (make-invader 65 10 10 5) (make-invader 70 13 10 3)))
+(check-expect (advance-invaders (list (make-invader 150 100 12 INVADER-DY) (make-invader 55 20 10 5) (make-invader 60 10 10 3)))
+              (list (make-invader 162 (- 100 INVADER-DY) 12 INVADER-DY) (make-invader 65 15 10 5) (make-invader 70 7 10 3)))
 
 (define (advance-invaders loi)
   (cond [(empty? loi) empty]                   ;BASE CASE
@@ -425,14 +425,14 @@
 ;(define (advance-invader invader) invader)
 
 (check-expect (advance-invader empty) empty)
-(check-expect (advance-invader (make-invader 150 100 12 6)) (make-invader 162 106 12 6))
+(check-expect (advance-invader (make-invader 150 100 12 6)) (make-invader 162 94 12 6))
 
 (define (advance-invader invader)
   (cond [(empty? invader) empty]
         [(hit-right-edge? invader) (make-invader (- WIDTH (invader-dx invader)) (+ (invader-y invader) (invader-dy invader)) (- 0 (invader-dx invader)) (- 0 (invader-dy invader)))]
         [(hit-left-edge? invader) (make-invader (+ (- WIDTH WIDTH) (invader-dx invader)) (+ (invader-y invader) (invader-dy invader))  (- 0 (invader-dx invader)) (- 0 (invader-dy invader)))]
         [else
-         (make-invader (+ (invader-x invader) (invader-dx invader)) (+ (invader-y invader) (invader-dy invader)) (invader-dx invader) (invader-dy invader))]))
+         (make-invader (+ (invader-x invader) (invader-dx invader)) (- (invader-y invader) (invader-dy invader)) (invader-dx invader) (invader-dy invader))]))
 
 ; #20 - hit-right-edge?
 ;invader - Boolean
