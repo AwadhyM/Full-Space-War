@@ -11,8 +11,8 @@
 (define WIDTH  300)
 (define HEIGHT 500)
 
-(define INVADER-DX 5)  
-(define INVADER-DY 3)
+(define INVADER-DX 6)  
+(define INVADER-DY 1.5)
 (define TANK-SPEED 2)
 (define MISSILE (ellipse 5 15 "solid" "white"))
 (define MISSILE-SPEED 10)
