@@ -280,7 +280,7 @@
 ;lom --> lom
 ; Advance and filter the list of missiles
 (define (next-missiles lom loi)
-  (on-screen-only (advance-missiles lom)))
+  (on-screen-only (advance-missiles (filter-missiles lom loi))))
 
 
 (check-expect (next-missiles empty empty) empty)
@@ -533,5 +533,51 @@
 (check-expect (has-collided? (make-invader 50 50 10 1) (make-missile 60 60)) true)
 
 (define (has-collided? invader missile)
+  (and (<= (abs (- (invader-x invader) (missile-x missile))) HIT-RANGE)
+           (<= (abs (- (invader-y invader) (missile-y missile))) HIT-RANGE)))
+
+;#26-filter-missiles
+; lom + loi ---> lom
+; Filter out lom to remove any missiles that have hit an invader 
+;(define (filter-missiles lom loi) lom)
+
+(check-expect (filter-missiles empty empty) empty)
+(check-expect (filter-missiles (list (make-missile 50 50)) empty) (list (make-missile 50 50)))
+(check-expect (filter-missiles (list (make-missile 50 50) (make-missile 20 20)) (list (make-invader 20 50 10 4) (make-invader 50 50 10 4))) (list (make-missile 20 20)))
+
+
+(define (filter-missiles lom loi)
+  (cond [(empty? lom) empty]                   
+        [else (if (missile-collision? (first lom) loi)
+                  (filter-missiles (rest lom) loi)
+                  (cons (first lom) (filter-missiles (rest lom) loi)))]))
+
+
+; #27 - missile-collision?
+; missile + loi --> boolean
+;Check if a missile has collided with any of the invaders on the screen
+;(define (missile-collision? missile loi) true)
+
+(check-expect (missile-collision? (make-missile 30 20) empty) false)
+(check-expect (missile-collision? (make-missile 30 20) (list (make-invader 50 50 10 4) (make-invader 30 20 10 4))) true)
+(check-expect (missile-collision? (make-missile 30 20) (list (make-invader 50 50 10 4) (make-invader 60 60 10 4))) false)
+
+(define (missile-collision? missile loi)
+  (cond [(empty? loi) false]
+        [else
+         (if (missile-has-collided? missile (first loi))
+             true
+             (missile-collision? missile (rest loi)))]))
+
+; #28 - missile-has-collided?
+; missile + invader --> boolean
+; check if missile has collided with selected invader
+;(define (missile-has-collided? missile invader) true)
+
+(check-expect (missile-has-collided? (make-missile 20 20) (make-invader 50 50 10 4)) false)
+(check-expect (missile-has-collided? (make-missile 50 50) (make-invader 50 50 10 4)) true)
+(check-expect (missile-has-collided? (make-missile 60 60) (make-invader 50 50 10 4)) true)
+
+(define (missile-has-collided? missile invader)
   (and (<= (abs (- (invader-x invader) (missile-x missile))) HIT-RANGE)
            (<= (abs (- (invader-y invader) (missile-y missile))) HIT-RANGE)))
