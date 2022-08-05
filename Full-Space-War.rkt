@@ -373,7 +373,6 @@
 (define (next-invaders loi lom)
   (create-invaders (advance-invaders (filter-invaders loi lom))))
 
-
 (check-random (next-invaders empty empty) (if (= 2 (random 150)) (make-invader (random WIDTH) 0 INVADER-DX INVADER-DY) empty)) ;no invaders in game... gaame generates one by random chance 
 
 (check-random (next-invaders (list (make-invader 60 10 INVADER-DX INVADER-DY) (make-invader 90 30 INVADER-DX INVADER-DY)) empty)
