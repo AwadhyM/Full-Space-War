@@ -225,7 +225,7 @@
 
 (define (move-data game) 
   (make-game
-   (next-invaders (game-invaders game))
+   (next-invaders (game-invaders game) (game-missiles game))
    (next-missiles (game-missiles game) (game-invaders game))
    (move-tank (game-tank game))
    0))
@@ -370,12 +370,13 @@
 ;Generate Invaders and move existing invaders
 ; loi -> loi
 
-(define (next-invaders loi)
-  (create-invaders (advance-invaders loi )))
+(define (next-invaders loi lom)
+  (create-invaders (advance-invaders (filter-invaders loi lom))))
 
-(check-random (next-invaders empty) (if (= 2 (random 150)) (make-invader (random WIDTH) 0 INVADER-DX INVADER-DY) empty)) ;no invaders in game... gaame generates one by random chance 
 
-(check-random (next-invaders (list (make-invader 60 10 INVADER-DX INVADER-DY) (make-invader 90 30 INVADER-DX INVADER-DY)))
+(check-random (next-invaders empty empty) (if (= 2 (random 150)) (make-invader (random WIDTH) 0 INVADER-DX INVADER-DY) empty)) ;no invaders in game... gaame generates one by random chance 
+
+(check-random (next-invaders (list (make-invader 60 10 INVADER-DX INVADER-DY) (make-invader 90 30 INVADER-DX INVADER-DY)) empty)
               (if (= 2 (random 150)) (list (make-invader (random WIDTH) 0 INVADER-DX INVADER-DY)
                                            (make-invader (+ 60 INVADER-DX) (- 10 INVADER-DY) INVADER-DX INVADER-DY)
                                            (make-invader (+ 90 INVADER-DX) (- 30 INVADER-DY) INVADER-DX INVADER-DY)
@@ -489,3 +490,48 @@
         [else
          (place-image INVADER (invader-x invader) (- HEIGHT (invader-y invader)) img)]))
 
+; #23 - filter-invaders
+; loi + lom ---> loi
+; Filter out loi to remove any invaders that have been hit by a missile
+;(define (filter-invaders loi lom) loi)
+
+(check-expect (filter-invaders empty empty) empty)
+(check-expect (filter-invaders (list (make-invader 50 50 10 4)) empty) (list (make-invader 50 50 10 4)))
+(check-expect (filter-invaders (list (make-invader 50 50 10 3)) (list (make-missile 30 20) (make-missile 50 50))) empty)
+(check-expect (filter-invaders (list (make-invader 50 50 10 2) (make-invader 20 21 10 4)) (list (make-missile 40 40) (make-missile 50 50))) (list (make-invader 20 21 10 4)))
+
+(define (filter-invaders loi lom)
+  (cond [(empty? loi) empty]                   
+        [else (if (invader-collision? (first loi) lom)
+                  (filter-invaders (rest loi) lom)
+                  (cons (first loi) (filter-invaders (rest loi) lom)))]))
+
+; #24 - invader-collision?
+; invader + lom --> boolean
+;check if an invader has collided with any of the missiles on the screen
+;(define (invader-collision? invader lom) true)
+
+(check-expect (invader-collision? (make-invader 50 50 10 4) empty) false)
+(check-expect (invader-collision? (make-invader 50 50 10 4) (list (make-missile 30 20) (make-missile 70 60) (make-missile 100 10))) false) ;No collisions
+(check-expect (invader-collision? (make-invader 50 50 10 4) (list (make-missile 30 20) (make-missile 50 50) (make-missile 60 60))) true) ;1 collision
+(check-expect (invader-collision? (make-invader 50 50 10 4) (list (make-missile 20 30) (make-missile 50 50) (make-missile 49 49))) true) ;multiple collisions
+
+(define (invader-collision? invader lom)
+  (cond [(empty? lom) false]
+        [else
+         (if (has-collided? invader (first lom))
+             true
+             (invader-collision? invader (rest lom)))]))
+
+; #25 - has-collided?
+; invader + missile --> boolean
+;check if an invader has collided with a specific missile
+;(define (has-collided? invader missile) true)
+
+(check-expect (has-collided? (make-invader 50 50 10 3) (make-missile 20 20)) false)
+(check-expect (has-collided? (make-invader 50 50 10 2) (make-missile 50 50)) true)
+(check-expect (has-collided? (make-invader 50 50 10 1) (make-missile 60 60)) true)
+
+(define (has-collided? invader missile)
+  (and (<= (abs (- (invader-x invader) (missile-x missile))) HIT-RANGE)
+           (<= (abs (- (invader-y invader) (missile-y missile))) HIT-RANGE)))
